@@ -1,10 +1,14 @@
-﻿using Field;
+﻿using Entity;
+using Field;
 using UnityEngine;
 
 namespace Playable
 {
     public class GridController : MonoBehaviour
     {
+        // TODO: Оркестр юнитов внутри сетки
+        [SerializeField] private Unit _elfPrefab;
+
         private CustomGridCell[,] _grid;
 
         public void InjectGrid(CustomGridCell[,] grid)

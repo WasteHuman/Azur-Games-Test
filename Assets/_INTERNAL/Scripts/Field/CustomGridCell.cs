@@ -11,12 +11,15 @@ namespace Field
         public bool IsOccupied;
         public Unit Unit;
 
-        public CustomGridCell(Vector2Int coordinates, Vector3 worldPosition)
+        public GridCellData CellData;
+
+        public CustomGridCell(Vector2Int coordinates, Vector3 worldPosition, GridCellData gridCellData)
         {
             Coordinates = coordinates;
             WorldPosition = worldPosition;
             IsOccupied = false;
             Unit = null;
+            CellData = gridCellData;
         }
     }
 }

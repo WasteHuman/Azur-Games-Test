@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -27,35 +28,43 @@ namespace Field
         private bool _isRebuilding = false;
         private bool _isGridInitialized = false;
 
+        public event Action<CustomGridCell[,]> OnGridInitialized;
+
         public int Columns => _columns;
         public int Rows => _rows;
-        public CustomGridCell[,] Cells => _cells;
+        public CustomGridCell[,] Cells
+        {
+            get => _cells;
+            private set
+            {
+                _cells = value;
+            }
+        }
         public Transform CellsParent => _cellsParent;
 
-        private void Awake()
+        private void Start()
         {
             InitializeGridFromScene();
         }
 
         private void InitializeGridFromScene()
         {
-            Transform existingParent = transform.Find("GridCells");
+            LoadGridFromScene();
+            _isGridInitialized = true;
 
-            if (existingParent != null)
-            {
-                _cellsParent = existingParent;
-                LoadGridFromScene();
-                _isGridInitialized = true;
-            }
-            Debug.Log("Grid initialized");
+            OnGridInitialized?.Invoke(Cells);
+            Debug.Log($"Grid initialized: {Cells != null}");
         }
 
         private void LoadGridFromScene()
         {
             if (_cellsParent == null)
+            {
+                Debug.Log($"Grid parent is null: {_cellsParent == null}");
                 return;
+            }
 
-            _cells = new CustomGridCell[_columns, _rows];
+            Cells = new CustomGridCell[_columns, _rows];
 
             GridCellData[] allCells = _cellsParent.GetComponentsInChildren<GridCellData>();
 
@@ -66,9 +75,10 @@ namespace Field
                 if (coords.x >= 0 && coords.x < _columns &&
                     coords.y >= 0 && coords.y < _rows)
                 {
-                    _cells[coords.x, coords.y] = new CustomGridCell(
+                    Cells[coords.x, coords.y] = new CustomGridCell(
                         coords,
-                        cellData.transform.position);
+                        cellData.transform.position,
+                        cellData);
                 }
             }
 
@@ -88,7 +98,6 @@ namespace Field
             if (Application.isPlaying)
                 return;
 
-            // Проверяем, изменились ли параметры сетки
             if (_lastColumns != _columns || _lastRows != _rows || _lastCellPrefab != _cellPrefab)
             {
                 _lastColumns = _columns;
@@ -117,14 +126,14 @@ namespace Field
             if (_cellsParent != null)
                 DestroyImmediate(_cellsParent.gameObject);
 
-            _cells = null;
+            Cells = null;
         }
 
         private void BuildGrid()
         {
-            _cells = new CustomGridCell[_columns, _rows];
+            Cells = new CustomGridCell[_columns, _rows];
 
-            GameObject parentObj = new GameObject("GridCells");
+            GameObject parentObj = new("GridCells");
             parentObj.transform.SetPositionAndRotation(_startPosition, Quaternion.identity);
             _cellsParent = parentObj.transform;
 
@@ -137,6 +146,7 @@ namespace Field
             }
 
             _isRebuilding = false;
+            Debug.Log($"Grid built: {Cells != null}");
         }
 
         private void CreateCell(int x, int y)
@@ -150,18 +160,15 @@ namespace Field
             GameObject cellObj = Instantiate(_cellPrefab, position, rotation, _cellsParent);
             cellObj.name = $"Cell_{x}_{y}";
 
-            GridCellData cellData = cellObj.GetComponent<GridCellData>();
-            if (cellData == null)
-            {
+            if (!cellObj.TryGetComponent<GridCellData>(out var cellData))
                 cellData = cellObj.AddComponent<GridCellData>();
-            }
 
-            Vector2Int coordinates = new Vector2Int(x, y);
+            Vector2Int coordinates = new(x, y);
             cellData.SetCoordinates(coordinates);
             cellData.SetOccupiedFlag(false);
 
-            CustomGridCell cell = new CustomGridCell(coordinates, position);
-            _cells[x, y] = cell;
+            CustomGridCell cell = new(coordinates, position, cellData);
+            Cells[x, y] = cell;
 
             UpdateCellVisual(cellObj, false);
 
@@ -200,7 +207,7 @@ namespace Field
                 coordinates.y < 0 || coordinates.y >= _rows)
                 return null;
 
-            return _cells[coordinates.x, coordinates.y];
+            return Cells[coordinates.x, coordinates.y];
         }
 
         public CustomGridCell GetCell(int x, int y) => GetCell(new Vector2Int(x, y));
