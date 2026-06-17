@@ -130,6 +130,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Entity.ElfArcher
   _view: {fileID: 671045657861744716}
+  _damage: 1
+  _level: 1
+  _cost: 10
+  _attackDelay: 1
+  _rotationSpeed: 5
 --- !u!1 &765593012849819668
 GameObject:
   m_ObjectHideFlags: 0

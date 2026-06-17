@@ -1,4 +1,6 @@
 ﻿using Entity;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Playable
@@ -13,5 +15,60 @@ namespace Playable
         [Space(5), Header("Enemy Count Settings")]
         [SerializeField] private int _orcEnemyCount = 6;
         [SerializeField] private int _bossEnemyCount = 1;
+
+        [Space(5), Header("Enemy Waypoints")]
+        [SerializeField] private List<Transform> _waypoints = new();
+
+        [Space(5), Header("Enemy Spawn Settings")]
+        [SerializeField] private float _spawnDelay = 0.25f;
+
+        private readonly List<Enemy> _spawnedEnemy = new();
+        private Coroutine _spawnRoutine;
+
+        public void StartEnemySpawn()
+        {
+            _spawnRoutine = StartCoroutine(EnemySpawnWithDelay());
+        }
+
+        private void SpawnEnemy(bool isBossAvailable = false)
+        {
+            Transform startPoint = _waypoints[0];
+
+            if (!isBossAvailable)
+            {
+                Enemy enemy = Instantiate(_baseEnemyPrefab, startPoint.position, Quaternion.identity);
+                enemy.InitializePath(_waypoints);
+                _spawnedEnemy.Add(enemy);
+            }
+            else
+            {
+                Enemy enemy = Instantiate(_bossEnemyPrefab, startPoint.position, Quaternion.identity);
+                enemy.InitializePath(_waypoints);
+                _spawnedEnemy.Add(enemy);
+            }
+        }
+
+        private IEnumerator EnemySpawnWithDelay()
+        {
+            int allEnemiesCount = _orcEnemyCount + _bossEnemyCount;
+
+            while (allEnemiesCount > 0)
+            {
+                SpawnEnemy();
+
+                if(allEnemiesCount == 1)
+                {
+                    yield return new WaitForSeconds(_spawnDelay);
+                    SpawnEnemy(true);
+                }
+
+                yield return new WaitForSeconds(_spawnDelay);
+
+                allEnemiesCount--;
+            }
+
+            StopCoroutine(_spawnRoutine);
+            _spawnRoutine = null;
+        }
     }
 }

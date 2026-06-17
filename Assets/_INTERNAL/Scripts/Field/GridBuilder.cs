@@ -156,7 +156,7 @@ namespace Field
                 y: 0f,
                 z: y * _cellOffset.z);
 
-            Quaternion rotation = Quaternion.Euler(90f, 0f, 0f);
+            Quaternion rotation = Quaternion.Euler(-90f, 0f, 0f);
             GameObject cellObj = Instantiate(_cellPrefab, position, rotation, _cellsParent);
             cellObj.name = $"Cell_{x}_{y}";
 

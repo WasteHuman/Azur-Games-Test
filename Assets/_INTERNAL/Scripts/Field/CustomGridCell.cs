@@ -21,5 +21,17 @@ namespace Field
             Unit = null;
             CellData = gridCellData;
         }
+
+        public void SetUnit(Unit unit)
+        {
+            CellData.SetUnit(unit);
+            Unit = unit;
+        }
+
+        public void SetOccupiedFlag(bool value)
+        {
+            CellData.SetOccupiedFlag(value);
+            IsOccupied = value;
+        }
     }
 }

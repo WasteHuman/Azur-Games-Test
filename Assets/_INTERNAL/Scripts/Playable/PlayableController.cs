@@ -10,6 +10,9 @@ namespace Playable
         [SerializeField] private GridBuilder _gridBuilder;
         [SerializeField] private GridController _gridController;
 
+        [Space(5), Header("Other Controllers")]
+        [SerializeField] private EnemyController _enemyController;
+
         private PlayerWallet _playerWallet;
 
         private void Awake()
@@ -30,6 +33,10 @@ namespace Playable
             _gridBuilder.OnGridInitialized -= HandleInitializedGrid;
         }
 
-        private void HandleInitializedGrid(CustomGridCell[,] grid) => _gridController.InjectGrid(grid);
+        private void HandleInitializedGrid(CustomGridCell[,] grid)
+        {
+            _gridController.InjectGrid(grid);
+            _enemyController.StartEnemySpawn();
+        }
     }
 }
