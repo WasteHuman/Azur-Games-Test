@@ -2488,6 +2488,9 @@ MonoBehaviour:
   _view: {fileID: 4938968144635876022}
   _health: 2
   _velocity: 1.75
+  _isBossMob: 0
+  _animation: {fileID: 6763621800170628958}
+  _reward: 10
 --- !u!1 &5005336530646621906
 GameObject:
   m_ObjectHideFlags: 0

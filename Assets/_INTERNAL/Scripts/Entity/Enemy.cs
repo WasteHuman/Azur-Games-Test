@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,11 +10,15 @@ namespace Entity
         [SerializeField] protected GameObject _view;
         [SerializeField] protected int _health;
         [SerializeField] protected float _velocity;
+        [SerializeField] protected bool _isBossMob = false;
+        [SerializeField] protected Animation _animation;
+        [SerializeField] protected int _reward;
 
         protected Vector3 _position;
         protected float _rotationSpeed = 5f;
 
-        private bool _isTarget = false;
+        private bool _isDie = false;
+        [SerializeField] private bool _isTarget = false;
         private bool _isPathEnded = false;
         private List<Transform> _path;
         private int _currentWaypointIndex = 0;
@@ -30,19 +35,21 @@ namespace Entity
                 OnHealthChange?.Invoke(_health);
             }
         }
+        public int Reward => _reward;
         public Vector3 Position => _position;
         public float Velocity => _velocity;
         public float RotationSpeed => _rotationSpeed;
         public bool IsAlive => _health > 0;
+        public bool IsBossMob => _isBossMob;
 
         public event Action<int> OnHealthChange;
         public event Action OnPathEnded;
-        public event Action OnEnemyDied;
+        public event Action<Enemy> OnEnemyDied;
 
-        public Enemy(int health, float velocity)
+        private void Start()
         {
-            _health = health;
-            _velocity = velocity;
+            _animation["Attack"].wrapMode = WrapMode.Once;
+            _animation["Death"].wrapMode = WrapMode.Once;
         }
 
         public void RequestCurrentHealth() => OnHealthChange?.Invoke(Health);
@@ -62,14 +69,18 @@ namespace Entity
         public virtual void ApplyDamage(int damage)
         {
             Health -= damage;
+            Debug.Log($"Enemy health: {Health}");
 
             if (Health <= 0)
-                OnEnemyDied?.Invoke();
+            {
+                _isDie = true;
+                StartCoroutine(WaitForAnimationEndStrict("Death", OnEnemyDied));
+            }
         }
 
         protected virtual void Update()
         {
-            if (_path == null || _path.Count == 0 || _isPathEnded) 
+            if (_path == null || _path.Count == 0 || _isPathEnded || _isDie) 
                 return;
 
             if (_currentWaypointIndex >= _path.Count)
@@ -97,15 +108,26 @@ namespace Entity
                 _currentWaypointIndex++;
 
                 if (_currentWaypointIndex >= _path.Count)
-                {
                     OnPathEnd();
-                }
             }
+        }
+
+        private IEnumerator WaitForAnimationEndStrict(string clip, Action<Enemy> onComplete)
+        {
+            _animation[clip].wrapMode = WrapMode.Once;
+            _animation.Play(clip);
+
+            AnimationState state = _animation[clip];
+            yield return new WaitUntil(() => state.time >= state.length);
+
+            onComplete?.Invoke(this);
+            StopCoroutine(WaitForAnimationEndStrict(clip, onComplete));
         }
 
         protected virtual void OnPathEnd()
         {
             _isPathEnded = true;
+            _animation.Play("Attack");
             OnPathEnded?.Invoke();
             Debug.Log($"{gameObject.name} reached the end of the path!");
         }

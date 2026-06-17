@@ -1,9 +1,6 @@
-﻿using UnityEngine;
-
-namespace Entity
+﻿namespace Entity
 {
     public class OrcBoss : Enemy
     {
-        public OrcBoss(int health, float velocity) : base(health, velocity) { }
     }
 }

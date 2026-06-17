@@ -1,4 +1,5 @@
 ﻿using Entity;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,6 +26,9 @@ namespace Playable
         private readonly List<Enemy> _spawnedEnemy = new();
         private Coroutine _spawnRoutine;
 
+        public event Action<Enemy> OnEnemySpawned;
+        public event Action<Enemy> OnEnemyDied;
+
         public void StartEnemySpawn()
         {
             _spawnRoutine = StartCoroutine(EnemySpawnWithDelay());
@@ -38,14 +42,27 @@ namespace Playable
             {
                 Enemy enemy = Instantiate(_baseEnemyPrefab, startPoint.position, Quaternion.identity);
                 enemy.InitializePath(_waypoints);
+                enemy.OnEnemyDied += HandleEnemyDeath;
                 _spawnedEnemy.Add(enemy);
+                OnEnemySpawned?.Invoke(enemy);
             }
             else
             {
                 Enemy enemy = Instantiate(_bossEnemyPrefab, startPoint.position, Quaternion.identity);
                 enemy.InitializePath(_waypoints);
+                enemy.OnEnemyDied += HandleEnemyDeath;
                 _spawnedEnemy.Add(enemy);
+                OnEnemySpawned?.Invoke(enemy);
             }
+        }
+
+        private void HandleEnemyDeath(Enemy enemy)
+        {
+            enemy.OnEnemyDied -= HandleEnemyDeath;
+            enemy.gameObject.SetActive(false);
+            _spawnedEnemy.Remove(enemy);
+            Destroy(enemy.gameObject);
+            OnEnemyDied?.Invoke(enemy);
         }
 
         private IEnumerator EnemySpawnWithDelay()

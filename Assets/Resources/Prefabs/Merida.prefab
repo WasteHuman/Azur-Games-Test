@@ -1318,9 +1318,10 @@ MonoBehaviour:
   _view: {fileID: 4139000147342869757}
   _damage: 2
   _level: 1
-  _cost: 0
-  _attackDelay: 2
+  _price: 0
+  _attackDelay: 6
   _rotationSpeed: 5
+  _animation: {fileID: 0}
 --- !u!1 &4219996381722980206
 GameObject:
   m_ObjectHideFlags: 0
