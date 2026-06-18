@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Playable.UI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,13 +14,18 @@ namespace Entity
         [SerializeField] protected bool _isBossMob = false;
         [SerializeField] protected Animation _animation;
         [SerializeField] protected int _reward;
+        [SerializeField] private HpAnchor _hpAnchor;
 
         protected Vector3 _position;
         protected float _rotationSpeed = 5f;
 
+        private int _maxHealth;
+        private HealthBarView _healthBarView;
+
         private bool _isDie = false;
-        [SerializeField] private bool _isTarget = false;
+        private bool _isTarget = false;
         private bool _isPathEnded = false;
+
         private List<Transform> _path;
         private int _currentWaypointIndex = 0;
 
@@ -28,31 +34,24 @@ namespace Entity
             get => _health;
             private set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), "Damage cannot be a negative");
-
                 _health = value;
-                OnHealthChange?.Invoke(_health);
             }
         }
         public int Reward => _reward;
-        public Vector3 Position => _position;
-        public float Velocity => _velocity;
-        public float RotationSpeed => _rotationSpeed;
         public bool IsAlive => _health > 0;
         public bool IsBossMob => _isBossMob;
+        public Transform HpAnchorPoint => _hpAnchor.Point;
 
-        public event Action<int> OnHealthChange;
         public event Action OnPathEnded;
         public event Action<Enemy> OnEnemyDied;
 
         private void Start()
         {
+            _maxHealth = _health;
             _animation["Attack"].wrapMode = WrapMode.Once;
-            _animation["Death"].wrapMode = WrapMode.Once;
         }
 
-        public void RequestCurrentHealth() => OnHealthChange?.Invoke(Health);
+        public void SetHealthBar(HealthBarView healthBarView) => _healthBarView = healthBarView;
 
         public void InitializePath(List<Transform> waypoints)
         {
@@ -66,14 +65,17 @@ namespace Entity
 
         public void MarkAsTarget() => _isTarget = true;
 
+        public void Stop() => _isPathEnded = true;
+
         public virtual void ApplyDamage(int damage)
         {
             Health -= damage;
-            Debug.Log($"Enemy health: {Health}");
+            _healthBarView.SetHealth(Mathf.Clamp01((float)Health / (float)_maxHealth));
 
             if (Health <= 0)
             {
                 _isDie = true;
+                Destroy(_healthBarView.gameObject);
                 StartCoroutine(WaitForAnimationEndStrict("Death", OnEnemyDied));
             }
         }
@@ -117,11 +119,9 @@ namespace Entity
             _animation[clip].wrapMode = WrapMode.Once;
             _animation.Play(clip);
 
-            AnimationState state = _animation[clip];
-            yield return new WaitUntil(() => state.time >= state.length);
+            yield return new WaitUntil(() => !_animation.IsPlaying(clip));
 
             onComplete?.Invoke(this);
-            StopCoroutine(WaitForAnimationEndStrict(clip, onComplete));
         }
 
         protected virtual void OnPathEnd()
@@ -129,7 +129,6 @@ namespace Entity
             _isPathEnded = true;
             _animation.Play("Attack");
             OnPathEnded?.Invoke();
-            Debug.Log($"{gameObject.name} reached the end of the path!");
         }
     }
 }

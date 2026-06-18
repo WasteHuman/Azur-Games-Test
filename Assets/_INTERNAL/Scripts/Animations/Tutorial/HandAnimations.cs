@@ -22,10 +22,12 @@ namespace Animations.Tutorial
 
             _moveTween = rectTransform
                 .DOAnchorPos(_moveTarget, _animationDuration)
-                .SetLoops(-1, LoopType.Yoyo);
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetUpdate(true);
             _rotationTween = rectTransform
                 .DORotateQuaternion(_rotationTarget, _animationDuration)
-                .SetLoops(-1, LoopType.Yoyo);
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetUpdate(true);
         }
 
         private void OnDisable()

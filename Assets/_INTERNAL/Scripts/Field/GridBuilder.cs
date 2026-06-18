@@ -53,7 +53,6 @@ namespace Field
             _isGridInitialized = true;
 
             OnGridInitialized?.Invoke(Cells);
-            Debug.Log($"Grid initialized: {Cells != null}");
         }
 
         private void LoadGridFromScene()

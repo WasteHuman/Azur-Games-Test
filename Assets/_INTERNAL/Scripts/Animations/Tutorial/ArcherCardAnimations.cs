@@ -20,18 +20,19 @@ namespace Animations.Tutorial
         private void OnEnable()
         {
             var rectTransform = GetComponent<RectTransform>();
-            _moveTarget.x = rectTransform.position.x;
 
             _moveTween?.Kill();
             _lightCardMoveTween?.Kill();
 
             _moveTween = rectTransform
-                .DOAnchorPos(_moveTarget, _moveAnimDuration)
-                .SetLoops(-1, LoopType.Yoyo);
+                .DOAnchorPosY(_moveTarget.y, _moveAnimDuration)
+                .SetLoops(-1, LoopType.Yoyo).
+                SetUpdate(true);
 
             _lightCardMoveTween = _lightCardTransform
                 .DOAnchorPos(_lightCardMoveTarget, _lightCardMoveAnimDuration)
-                .SetLoops(-1, LoopType.Restart);
+                .SetLoops(-1, LoopType.Restart)
+                .SetUpdate(true);
         }
 
         private void OnDisable()

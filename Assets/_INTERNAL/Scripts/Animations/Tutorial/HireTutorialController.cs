@@ -12,6 +12,7 @@ namespace Animations.Tutorial
         [SerializeField] private Button _buyHeroButton;
 
         public event Action OnBuyButtonClicked;
+        public event Action OnTutorialCompleted;
 
         private void OnEnable()
         {
@@ -27,6 +28,19 @@ namespace Animations.Tutorial
                 return;
 
             _buyHeroButton.onClick.RemoveListener(HandleBuyHeroButtonClick);
+        }
+
+        public void Open()
+        {
+            _tutorPanel.SetActive(true);
+            Time.timeScale = 0.0f;
+        }
+
+        public void Close()
+        {
+            _tutorPanel.SetActive(false);
+            Time.timeScale = 1.0f;
+            OnTutorialCompleted?.Invoke();
         }
 
         public void Initialize(int heroPrice) => _heroPriceText.text = heroPrice.ToString();

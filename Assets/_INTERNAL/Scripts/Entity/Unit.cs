@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 
 namespace Entity
 {
-    public abstract class Unit : MonoBehaviour
+    public abstract class Unit : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         [SerializeField] protected GameObject _view;
         [SerializeField] protected int _damage;
@@ -32,9 +33,11 @@ namespace Entity
         public float RotationSpeed => _rotationSpeed;
         public float AttackDelay => _attackDelay;
 
+        public event Action<Unit> OnDragStarted;
+        public event Action OnDragCompleted;
         public event Action OnPriceChanged;
 
-        private void Start()
+        public virtual void Start()
         {
             _animation["Attack"].wrapMode = WrapMode.Once;
             _animation["Death"].wrapMode = WrapMode.Once;
@@ -50,6 +53,8 @@ namespace Entity
             _attackRoutine = StartCoroutine(AttackWithDelay(target));
         }
 
+        public abstract void PlayerWin();
+
         private void Update()
         {
             if (_target == null)
@@ -58,9 +63,15 @@ namespace Entity
             RotateTowards(_target.transform.position);
         }
 
+        public void SetPrice(int price) => Price = price;
         public void IncreasePrice() => Price += 5;
 
-        public void PlayerDefeat() => _animation.Play("Death");
+        public void PlayerDefeat()
+        {
+            _animation.Play("Death");
+            _target = null;
+            StopCoroutine(_attackRoutine);
+        }
 
         private void RotateTowards(Vector3 targetPosition)
         {
@@ -86,5 +97,9 @@ namespace Entity
                 target.ApplyDamage(_damage);
             }
         }
+
+        public void OnPointerUp(PointerEventData eventData) => OnDragCompleted?.Invoke();
+
+        public void OnPointerDown(PointerEventData eventData) => OnDragStarted?.Invoke(this);
     }
 }

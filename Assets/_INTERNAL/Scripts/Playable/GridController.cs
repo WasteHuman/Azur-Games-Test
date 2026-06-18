@@ -28,7 +28,7 @@ namespace Playable
             var elfUnit = Instantiate(_elfPrefab, cell.CellData.transform, worldPositionStays: true);
             elfUnit.transform.position = cell.CellData.transform.position;
 
-            _unitController.AddNewUnit(elfUnit);
+            _unitController.AddNewUnit(elfUnit, true);
 
             cell.SetUnit(elfUnit);
             cell.SetOccupiedFlag(true);
