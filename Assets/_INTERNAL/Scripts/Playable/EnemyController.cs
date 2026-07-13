@@ -9,7 +9,6 @@ namespace Playable
 {
     public class EnemyController : MonoBehaviour
     {
-        // TODO: Контроллер врагов (перемещение/передача в PlayableController событий, связанных с Enemy)
         [Header("Enemy Prefabs Setup")]
         [SerializeField] private Enemy _baseEnemyPrefab;
         [SerializeField] private Enemy _bossEnemyPrefab;
